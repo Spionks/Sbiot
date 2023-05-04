@@ -1,0 +1,7 @@
+start.sh
+start_foreground.sh
+death_channels.txt
+user_deaths_to_forward.txt
+db.sqlite
+db_backup.sqlite
+__pycache__
