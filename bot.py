@@ -282,7 +282,7 @@ class MaffyCog(commands.Cog):
     def __init__(self, bot :Sbiot):
         self.bot :Sbiot = bot
 
-    @nextcord.slash_command(name="update the wheel", description="Updates the wheel with the current tasks")
+    @nextcord.slash_command(name="update_maffy_tasks", description="Updates the wheel with the current tasks")
     async def update_maffy_tasks(self, interaction: nextcord.Interaction, tasks: str):
         current_tasks = tasks.split("\n")
         previous_tasks = db.get_all_maffy_tasks()
@@ -296,7 +296,7 @@ class MaffyCog(commands.Cog):
         for task in added_tasks:
             db.add_maffy_task(task)
 
-    @nextcord.slash_command(name="view tasks on the wheel", description="Shows all Maffy's tasks currently on the wheel")
+    @nextcord.slash_command(name="view_maffy_tasks", description="Shows all Maffy's tasks currently on the wheel")
     async def vew_maffy_tasks(self, interaction: nextcord.Interaction):
         tasks = db.get_all_maffy_tasks()
         if len(tasks) == 0:
@@ -305,7 +305,7 @@ class MaffyCog(commands.Cog):
 
         await interaction.response.send_message(response)
 
-    @nextcord.slash_command(name="delete task from wheel", description="Delete a task from the wheel")
+    @nextcord.slash_command(name="delete_maffy_task", description="Delete a task from the wheel")
     async def vew_maffy_tasks(self, interaction: nextcord.Interaction, task: str):
         db.remove_maffy_task(task)
         await interaction.response.send_message(f"Task{task} successfully deleted.", ephemeral=True)
