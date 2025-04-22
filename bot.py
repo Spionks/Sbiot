@@ -32,8 +32,9 @@ class Sbiot(nextcord.Client):
         self.cuties_server_id = 1002860611409039400
         self.death_channels = {self.adorablehq_id : {"id" : 975039863130832966, "authors": ["The Grim Reaper"]},
             self.ello_id : {"id":988070592131510303, "authors": ["sit", "Sbiot"]},
-            self.cuties_server_id : {"id":1005575341672247408, "authors": ["Sbiot", "Cutie Bot"]}}
-        self.user_deaths_to_forward = {"Spionks" : {"from":self.adorablehq_id, "to":[self.ello_id]},
+            self.cuties_server_id : {"id":1005575341672247408, "authors": ["Sbiot", "Cutie Bot"]},
+            self.cuties_community_deaths_id : {"id ": 1242169746972082327, "authors": ["Sbiot", "Cutie Bot"]} }
+        self.user_deaths_to_forward = {"Spionks" : {"from":self.adorablehq_id, "to":[self.ello_id, self.cuties_community_deaths_id]},
             "Chionk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
             "Spuimk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
             "Lietre" : {"from":self.adorablehq_id, "to":[self.ello_id]},
@@ -265,9 +266,41 @@ class MakiCog(commands.Cog):
                                                       suppress_embeds=True)
 
 
+class MaffyCog(commands.Cog):
+    def __init__(self, bot :Sbiot):
+        self.bot :Sbiot = bot
+
+    @nextcord.slash_command(name="update the wheel", description="Updates the wheel with the current tasks")
+    async def update_maffy_tasks(self, interaction: nextcord.Interaction, tasks: str):
+        current_tasks = tasks.split("\n")
+        previous_tasks = db.get_all_maffy_tasks()
+        
+        completed_tasks = [ task for task in previous_tasks if task not in current_tasks]
+        added_tasks = [ task for task in current_tasks if task not in previous_tasks]
+
+        for task in completed_tasks:
+            db.set_maffy_task_completed(task)
+        
+        for task in added_tasks:
+            db.add_maffy_task(task)
+
+    @nextcord.slash_command(name="view tasks on the wheel", description="Shows all Maffy's tasks currently on the wheel")
+    async def vew_maffy_tasks(self, interaction: nextcord.Interaction):
+        tasks = db.get_all_maffy_tasks()
+        if len(tasks) == 0:
+            await interaction.response.send_message("There are no tasks on the wheel, go to https://www.twitch.tv/maffychew and give him some new tasks! 🐸")
+        response = "\n".join([ f"{task['task']}, added: {task['added']}, completed: {task['completed']}" for task in tasks ])
+
+        await interaction.response.send_message(response)
+
+    @nextcord.slash_command(name="delete task from wheel", description="Delete a task from the wheel")
+    async def vew_maffy_tasks(self, interaction: nextcord.Interaction, task: str):
+        db.remove_maffy_task(task)
+        await interaction.response.send_message(f"Task{task} successfully deleted.", ephemeral=True)
 
 
 if __name__ == "__main__":
     bot = Sbiot()
     bot.add_cog(MakiCog(bot))
+    bot.add_cog(MaffyCog(bot))
     bot.run(TOKEN)

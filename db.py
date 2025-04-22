@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import datetime
 
 class DB():
     def __init__(self, ) -> None:
@@ -79,3 +80,32 @@ class DB():
             return None
         else:
             return fetched["discord_name"]
+
+
+    def get_all_maffy_tasks(self):
+        self.cur.execute("SELECT * \
+                         FROM maffy_tasks")
+        fetched = self.cur.fetchall()
+        if fetched:
+            return fetched
+        else:
+            return []
+
+
+    def add_maffy_task(self, task):
+        current_time = datetime.datetime.now()
+        self.cur.execute("INSERT INTO maffy_tasks \
+                         VALUES (?, ?)", (task, str(current_time)))
+        self.con.commit()
+
+    def set_maffy_task_completed(self, task):
+        current_time = datetime.datetime.now()
+        self.cur.execute("UPDATE maffy_tasks \
+                         SET completed = ? \
+                         WHERE task = ?", (str(current_time), task))
+        self.con.commit()
+
+    def remove_maffy_task(self, task):
+        self.cur.execute("DELETE FROM maffy_tasks \
+                         WHERE task = ?", (task,))
+        self.con.commit()

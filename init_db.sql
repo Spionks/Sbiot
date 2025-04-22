@@ -14,3 +14,9 @@ CREATE TABLE IF NOT EXISTS rsn_discord_names(
     rsn TEXT,
     discord_name TEXT
 )
+
+CREATE TABLE IF NOT EXISTS maffy_tasks(
+    task TEXT,
+    added TEXT,
+    completed TEXT
+)
