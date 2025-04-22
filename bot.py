@@ -3,41 +3,60 @@ import io
 import os
 import aiohttp
 
-import discord
+import nextcord
+from nextcord.ext import commands
 from dotenv import load_dotenv
 import db
-from random import randint
-from ast import literal_eval
+from random import random
+
+intents = nextcord.Intents.default()
+intents.message_content = True
+intents.members = True
+intents.integrations = True
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 
 # client = discord.Client()
-guilds : dict[str, discord.Guild] = {}
+guilds : dict[int, nextcord.Guild] = {}
 db = db.DB()
 
-class Sbiot(discord.Client):
+class Sbiot(nextcord.Client):
 
     def __init__(self):
-        with open("death_channels.txt","r") as death_channel_file:
-            self.death_channels = literal_eval(" ".join(death_channel_file.readlines()))
-        with open("user_deaths_to_forward.txt","r") as user_deaths_to_forward_file:
-            self.user_deaths_to_forward = literal_eval(" ".join(user_deaths_to_forward_file.readlines()))
-
-        super().__init__()
+        self.sbiot_id = 979775602859061248
+        self.spionk_id = 223824127197184001
+        self.ello_id = 893568164909174835
+        self.adorablehq_id = 957585958990127144
+        self.cuties_server_id = 1002860611409039400
+        self.death_channels = {self.adorablehq_id : {"id" : 975039863130832966, "authors": ["The Grim Reaper"]},
+            self.ello_id : {"id":988070592131510303, "authors": ["sit", "Sbiot"]},
+            self.cuties_server_id : {"id":1005575341672247408, "authors": ["Sbiot", "Cutie Bot"]}}
+        self.user_deaths_to_forward = {"Spionks" : {"from":self.adorablehq_id, "to":[self.ello_id]},
+            "Chionk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
+            "Spuimk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
+            "Lietre" : {"from":self.adorablehq_id, "to":[self.ello_id]},
+            "blemma" : {"from":self.adorablehq_id, "to":[self.cuties_server_id]},
+            "becs tasty" : {"from":self.adorablehq_id, "to":[self.cuties_server_id, self.ello_id]}}
+        self.maki_bot_id = 563434444321587202
+        self.maki_hall_of_fame_channel_id = 1206574323717111829
+        self.maki_hall_of_fame_channel : nextcord.channel.TextChannel
+        super().__init__(intents=intents)
 
 
     async def on_ready(self):
         print(f"Sbiot online")
         for guild in self.guilds:
             print(f"Connected to {guild}")
-            guilds[guild.name] = guild
+            guilds[guild.id] = guild
 
-        for server_name, channel in self.death_channels.items():
-            channel["channel"] = discord.utils.get(guilds[server_name].channels, name=channel["name"])
+        for server_id, channel in self.death_channels.items():
+            channel["channel"] = nextcord.utils.get(guilds[server_id].channels, id=channel["id"])
+        
+        self.maki_hall_of_fame_channel = self.get_channel(self.maki_hall_of_fame_channel_id)
 
-    async def on_message(self, message: discord.message.Message):
+    async def on_message(self, message: nextcord.message.Message):
         lowercase_message = message.content.lower()
         if message.author == self.user:
             return
@@ -53,9 +72,9 @@ class Sbiot(discord.Client):
             db.update_record(username, "counting", str(int(current_val)+1))
             await message.reply(f"You have counted to {current_val}")
 
-        elif message.guild.name in self.death_channels \
-        and message.channel.name == self.death_channels[message.guild.name]["name"] \
-        and message.author.name in self.death_channels[message.guild.name]["authors"]:
+        elif message.guild.id in self.death_channels \
+        and message.channel.id == self.death_channels[message.guild.id]["id"] \
+        and message.author.name in self.death_channels[message.guild.id]["authors"]:
 
             username = message.content[:-12]
 
@@ -63,18 +82,16 @@ class Sbiot(discord.Client):
             current_death_count = self.increment_record(username, death_record_name, 1)
             await message.reply(f"{username} has died {current_death_count} time{'' if current_death_count == 1 else 's'}")
 
-            if username in self.user_deaths_to_forward and message.guild.name == self.user_deaths_to_forward[username]["from"]:
+            if username in self.user_deaths_to_forward and message.guild.id == self.user_deaths_to_forward[username]["from"]:
                 for server_to_forward_to in self.user_deaths_to_forward[username]["to"]:
                     async with aiohttp.ClientSession() as session:
                         async with session.get(message.attachments[0].url) as resp:
                             if resp.status != 200:
                                 print(f'Could not download file at {message.attachments[0].url}')
-                                print(f'Status code: {resp.status}')
-                                print(f'Content: {await resp.read()}')
                                 return
                             data = io.BytesIO(await resp.read())
-                            await self.death_channels[server_to_forward_to]["channel"].send(f"{username} has died lmfao.", file=discord.File(data, "death.png"))
-                            death_record_name = server_to_forward_to + "_deaths"
+                            await self.death_channels[server_to_forward_to]["channel"].send(f"{username} has died lmfao.", file=nextcord.File(data, "death.png"))
+                            death_record_name = guilds[server_to_forward_to].name + "_deaths"
                             current_death_count = self.increment_record(username, death_record_name, 1)
                             await self.death_channels[server_to_forward_to]["channel"].send(f"{username} has died {current_death_count} time{'' if current_death_count == 1 else 's'}")
 
@@ -91,25 +108,94 @@ class Sbiot(discord.Client):
             reply_string = "\n".join(d[0] + ": " + d[1] for d in deaths)
             await message.reply(reply_string)
 
-        elif message.author.name == "RNG Announcer" and message.channel.name == "drop-channel":
-            if message.embeds:
-                embed = message.embeds[0]
-                #print(embed.to_dict())
-                rsn = embed.author.name
-                discord_name = db.get_discord_name(rsn)
-                if not discord_name:
-                    return
-                index_of_opening_bracket = embed.description.find('[')
-                index_of_closing_bracket = embed.description.find(']')
-                drop = embed.description[index_of_opening_bracket + 1 : index_of_closing_bracket]
-                await message.reply(f"gz <@{discord_name}> on getting {drop}")
+        elif lowercase_message[0:5] == "!roll":
+            roll_string = lowercase_message[6:]
+            dice_strings = roll_string.split("+")
+            result_strings = []
+            total = 0
+            for dice_string in dice_strings:
+                dice_string_split = dice_string.split("d")
+                if len(dice_string_split) == 1:
+                    try:
+                        total += int(dice_string)
+                    except ValueError:
+                            await message.reply(f"{dice_string} is not a valid number")
+                            return
+                    result_strings.append(dice_string)
+                elif len(dice_string_split) == 2:
+                    n_dice = 0
+                    try:
+                        dice_sides = int(dice_string_split[1])
+                        if dice_sides > 256:
+                            await message.reply(f"{dice_string_split[1]} would make the dice's numbers too small!")
+                            return
+                        elif dice_sides < 1:
+                            await message.reply(f"A dice can not have {dice_string_split[1]} sides!")
+                            return
+                    except ValueError:
+                            await message.reply(f"{dice_string_split[1]} is not a valid number of sides for dice")
+                            return
+                    if dice_string_split[0] == 0:
+                        n_dice = 1
+                    else:
+                        if dice_string_split[0] == "":
+                            n_dice = 1
+                        else:
+                            try:
+                                n_dice = int(dice_string_split[0])
+                            except ValueError:
+                                await message.reply(f"{dice_string_split[0]} is not a valid number of dice")
+                                return
+                        if n_dice > 100:
+                            await message.reply("Too many dice!!!")
+                            return
+                        elif n_dice < 1:
+                            await message.reply(f"{dice_string_split[0]} is not a valid number of dice")
+                            return
+                    for i in range(n_dice):
+                        roll = int(random() * dice_sides + 1)
+                        total += roll
+                        result_strings.append(f"d{dice_sides}: {roll}")
+            if len(result_strings) == 0:
+                await message.reply(f"Invalid format")
+                return
+            result_string = f"You rolled: {total} ({' + '.join(result_strings)})"
+            await message.reply(result_string)
+        
+        elif lowercase_message[0:17] == "!download_history":
+            if message.author.id != self.spionk_id:
+                await message.reply("You are not frog enough to do that 🐸")
+                return
             
-        elif lowercase_message.split()[0] == "set_rsn":
-            rsn = message.content.split(" ", 1)[1]
-            print(rsn, message.author.id)
-            db.set_rsn(rsn, message.author.id)
-            await message.reply(f"Successfully set your rsn as {rsn}")
-                
+            parent_folder = "downloaded_message_history"
+            if not os.path.exists(parent_folder):
+                os.makedirs(parent_folder)
+
+            n_channels = len(message.guild.text_channels)
+
+            reply_message = await message.reply(f"Downloading... 0/{n_channels}")
+            for i, channel in enumerate(message.guild.text_channels):
+                folder = parent_folder + "/" + channel.name
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+
+                meta_file_path = folder + "/meta"
+                with open(meta_file_path, "w") as meta_file:
+                    meta_file.write(f"message_id, jump_url, message_author_name, n_attachments, n_reactions\n")
+                    async for message_iter in channel.history(limit=None):
+                        meta_file.write(f"{message_iter.id}, {message_iter.jump_url}, {message_iter.author}, {len(message.attachments)}, {len(message.reactions)}\n")
+                        
+                        message_file_path = folder + "/" + str(message_iter.id)
+                        with open(message_file_path, "w") as file:
+                            file.write(f"{message_iter.content}\n")
+
+                reply_message = await reply_message.edit(content=f"Downloading... {i}/{n_channels}")
+
+            await reply_message.edit(content="Download complete 🐸")
+                    
+
+
+
     def increment_record(self, username: str, record_name: str, increment_by: int) -> int:
         current_record = db.get_record(username, record_name)
         if not current_record:
@@ -120,7 +206,68 @@ class Sbiot(discord.Client):
         db.update_record(username, record_name, current_record)
         return current_record
 
+class MakiCog(commands.Cog):
+    def __init__(self, bot :Sbiot):
+        self.bot :Sbiot = bot
+
+    @nextcord.slash_command(name="inspire", description="Generates a very inspirational quote")
+    async def maki_inspire(self, interaction: nextcord.Interaction):
+        """
+        Mimics the old Maki /inspire command.
+        """
+        generate_url = "https://inspirobot.me/api?generate=true"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(generate_url) as response:
+                if response.status != 200:
+                    await interaction.send(f"Failed to generate inspirational quote, please dm <@{self.bot.spionk_id}>")
+                    await interaction.send(f"Status: {response.status}")
+                    return
+
+                image_url_bytes = await response.read()
+                image_url = image_url_bytes.decode("utf-8")
+
+            async with session.get(image_url) as response:
+                if response.status != 200:
+                    await interaction.send(f"Failed to fetch inspirational quote, please dm <@{self.bot.spionk_id}>")
+                    await interaction.send(f"Status: {response.status}")
+                    return
+                
+                image = io.BytesIO(await response.read())
+                await interaction.send(file=nextcord.File(fp=image, filename="generated.jpg"))
+
+
+    @nextcord.message_command(name="Submit to hall of fame")
+    async def submit_maki_hall_of_fame(self, interaction: nextcord.Interaction, message: nextcord.message.Message):
+        """
+        Submits an image from the /inspire channel to the hall of fame
+        """
+
+        if len(message.attachments) == 0:
+            await interaction.response.send_message("You must submit an image, you silly potato.", ephemeral=True)
+            return
+
+        author_display_name = message.author.global_name
+        author_guild_nick_name = interaction.guild.get_member(message.author.id).nick
+
+        if (author_display_name == "Sbiot" or author_guild_nick_name == "Sbiot") and message.author.id != self.bot.sbiot_id:
+            await interaction.response.send_message("Changing your name to \"Sbiot\" won't trick me!", ephemeral=True)
+            return
+        
+        if message.author.id != self.bot.sbiot_id:
+            await interaction.response.send_message("That is not a message sent by Sbiot, you silly billy.", ephemeral=True)
+            return        
+       
+        await interaction.response.send_message("Submitted!", ephemeral=True)
+        image_file = message.attachments[0]
+        image_bytes = await image_file.read()
+        await self.bot.maki_hall_of_fame_channel.send(f"<@{interaction.user.id}> submitted {message.jump_url}:", 
+                                                      file = nextcord.File(fp=io.BytesIO(image_bytes), filename=image_file.filename), 
+                                                      suppress_embeds=True)
+
+
+
 
 if __name__ == "__main__":
     bot = Sbiot()
+    bot.add_cog(MakiCog(bot))
     bot.run(TOKEN)
