@@ -95,7 +95,7 @@ class DB():
     def add_maffy_task(self, task):
         current_time = datetime.datetime.now()
         self.cur.execute("INSERT INTO maffy_tasks \
-                         VALUES (?, ?)", (task, str(current_time)))
+                         VALUES (?, ?, ?)", (task, str(current_time), None))
         self.con.commit()
 
     def set_maffy_task_completed(self, task):
