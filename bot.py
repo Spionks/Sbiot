@@ -295,9 +295,11 @@ class MaffyCog(commands.Cog):
         
         for task in added_tasks:
             db.add_maffy_task(task)
+        
+        await interaction.response.send_message("Tasks successfully added")
 
     @nextcord.slash_command(name="view_maffy_tasks", description="Shows all Maffy's tasks currently on the wheel")
-    async def vew_maffy_tasks(self, interaction: nextcord.Interaction):
+    async def view_maffy_tasks(self, interaction: nextcord.Interaction):
         tasks = db.get_all_maffy_tasks()
         if len(tasks) == 0:
             await interaction.response.send_message("There are no tasks on the wheel, go to https://www.twitch.tv/maffychew and give him some new tasks! 🐸")
@@ -306,7 +308,7 @@ class MaffyCog(commands.Cog):
         await interaction.response.send_message(response)
 
     @nextcord.slash_command(name="delete_maffy_task", description="Delete a task from the wheel")
-    async def vew_maffy_tasks(self, interaction: nextcord.Interaction, task: str):
+    async def delete_maffy_tasks(self, interaction: nextcord.Interaction, task: str):
         db.remove_maffy_task(task)
         await interaction.response.send_message(f"Task{task} successfully deleted.", ephemeral=True)
 
