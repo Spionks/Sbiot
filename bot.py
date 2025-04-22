@@ -30,6 +30,7 @@ class Sbiot(nextcord.Client):
         self.ello_id = 893568164909174835
         self.adorablehq_id = 957585958990127144
         self.cuties_server_id = 1002860611409039400
+        self.cuties_community_deaths_id = 1242169746972082327
         self.death_channels = {self.adorablehq_id : {"id" : 975039863130832966, "authors": ["The Grim Reaper"]},
             self.ello_id : {"id":988070592131510303, "authors": ["sit", "Sbiot"]},
             self.cuties_server_id : {"id":1005575341672247408, "authors": ["Sbiot", "Cutie Bot"]},
