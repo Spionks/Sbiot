@@ -5,3 +5,6 @@ user_deaths_to_forward.txt
 db.sqlite
 db_backup.sqlite
 __pycache__
+downloaded_message_history
+.vscode
+.env
