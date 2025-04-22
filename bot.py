@@ -27,20 +27,27 @@ class Sbiot(nextcord.Client):
     def __init__(self):
         self.sbiot_id = 979775602859061248
         self.spionk_id = 223824127197184001
-        self.ello_id = 893568164909174835
-        self.adorablehq_id = 957585958990127144
+        self.ello_server_id = 893568164909174835
+        self.ello_death_channel_id = 988070592131510303
+        self.adorablehq_server_id = 957585958990127144
+        self.adorablehq_death_id = 957585958990127144
         self.cuties_server_id = 1002860611409039400
+        self.cuties_becs_and_blemma_deaths_id = 1005575341672247408
         self.cuties_community_deaths_id = 1242169746972082327
-        self.death_channels = {self.adorablehq_id : {"id" : 975039863130832966, "authors": ["The Grim Reaper"]},
-            self.ello_id : {"id":988070592131510303, "authors": ["sit", "Sbiot"]},
-            self.cuties_server_id : {"id":1005575341672247408, "authors": ["Sbiot", "Cutie Bot"]},
-            self.cuties_community_deaths_id : {"id": 1005575341672247408, "authors": ["Sbiot", "Cutie Bot"]} }
-        self.user_deaths_to_forward = {"Spionks" : {"from":self.adorablehq_id, "to":[self.ello_id, self.cuties_community_deaths_id]},
-            "Chionk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
-            "Spuimk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
-            "Lietre" : {"from":self.adorablehq_id, "to":[self.ello_id]},
-            "blemma" : {"from":self.adorablehq_id, "to":[self.cuties_server_id]},
-            "becs tasty" : {"from":self.adorablehq_id, "to":[self.cuties_server_id, self.ello_id]}}
+        self.death_channels = {self.adorablehq_server_id : [{"id" : self.adorablehq_death_id, "authors": ["The Grim Reaper"]}],
+            self.ello_server_id : [{"id": self.ello_death_channel_id, "authors": ["sit", "Sbiot"]}],
+            self.cuties_server_id : [{"id": self.cuties_becs_and_blemma_deaths_id, "authors": ["Sbiot", "Cutie Bot"]},
+                                     {"id": self.cuties_community_deaths_id, "authors": ["Sbiot", "Cutie Bot"]}] }
+        self.user_deaths_to_forward = {
+            "Spionks" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id),
+                                                                 (self.cuties_community_deaths_id, self.cuties_community_deaths_id)]},
+            "Chionk" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id)]},
+            "Spuimk" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id)]},
+            "Lietre" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id)]},
+            "blemma" : {"from":self.adorablehq_server_id, "to":[(self.cuties_server_id, self.cuties_becs_and_blemma_deaths_id)]},
+            "becs tasty" : {"from":self.adorablehq_server_id, "to":[(self.cuties_server_id, self.cuties_becs_and_blemma_deaths_id),
+                                                                    (self.ello_server_id, self.ello_death_channel_id)]}
+        }
         self.maki_bot_id = 563434444321587202
         self.maki_hall_of_fame_channel_id = 1206574323717111829
         self.maki_hall_of_fame_channel : nextcord.channel.TextChannel
@@ -53,8 +60,9 @@ class Sbiot(nextcord.Client):
             print(f"Connected to {guild}")
             guilds[guild.id] = guild
 
-        for server_id, channel in self.death_channels.items():
-            channel["channel"] = nextcord.utils.get(guilds[server_id].channels, id=channel["id"])
+        for server_id, channels in self.death_channels.items():
+            for channel in channels:
+                channel["channel"] = nextcord.utils.get(guilds[server_id].channels, id=channel["id"])
         
         self.maki_hall_of_fame_channel = self.get_channel(self.maki_hall_of_fame_channel_id)
 
@@ -75,8 +83,7 @@ class Sbiot(nextcord.Client):
             await message.reply(f"You have counted to {current_val}")
 
         elif message.guild.id in self.death_channels \
-        and message.channel.id == self.death_channels[message.guild.id]["id"] \
-        and message.author.name in self.death_channels[message.guild.id]["authors"]:
+        and message.channel.id in [ channel["id"] for channel in self.death_channels[message.guild.id] if message.author.name in channel["authors"] ]:
 
             username = message.content[:-12]
 
@@ -85,17 +92,21 @@ class Sbiot(nextcord.Client):
             await message.reply(f"{username} has died {current_death_count} time{'' if current_death_count == 1 else 's'}")
 
             if username in self.user_deaths_to_forward and message.guild.id == self.user_deaths_to_forward[username]["from"]:
-                for server_to_forward_to in self.user_deaths_to_forward[username]["to"]:
+                for server_to_forward_to, channel_to_forward_to in self.user_deaths_to_forward[username]["to"]:
                     async with aiohttp.ClientSession() as session:
                         async with session.get(message.attachments[0].url) as resp:
                             if resp.status != 200:
                                 print(f'Could not download file at {message.attachments[0].url}')
                                 return
                             data = io.BytesIO(await resp.read())
-                            await self.death_channels[server_to_forward_to]["channel"].send(f"{username} has died lmfao.", file=nextcord.File(data, "death.png"))
+                            channel = None
+                            for c in self.death_channels[server_to_forward_to]:
+                                if c["id"] == channel_to_forward_to:
+                                    channel = c["channel"]
+                            await channel.send(f"{username} has died lmfao.", file=nextcord.File(data, "death.png"))
                             death_record_name = guilds[server_to_forward_to].name + "_deaths"
                             current_death_count = self.increment_record(username, death_record_name, 1)
-                            await self.death_channels[server_to_forward_to]["channel"].send(f"{username} has died {current_death_count} time{'' if current_death_count == 1 else 's'}")
+                            await channel.send(f"{username} has died {current_death_count} time{'' if current_death_count == 1 else 's'}")
 
 
         elif lowercase_message == "deathcount":
