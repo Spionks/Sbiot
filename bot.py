@@ -249,7 +249,7 @@ class MakiCog(commands.Cog):
                 await interaction.send(file=nextcord.File(fp=image, filename="generated.jpg"))
 
 
-    @nextcord.message_command(name="Submit to hall of fame")
+    @nextcord.message_command(name="submit to hall of fame")
     async def submit_maki_hall_of_fame(self, interaction: nextcord.Interaction, message: nextcord.message.Message):
         """
         Submits an image from the /inspire channel to the hall of fame
