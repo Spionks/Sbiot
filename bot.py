@@ -34,7 +34,7 @@ class Sbiot(nextcord.Client):
         self.death_channels = {self.adorablehq_id : {"id" : 975039863130832966, "authors": ["The Grim Reaper"]},
             self.ello_id : {"id":988070592131510303, "authors": ["sit", "Sbiot"]},
             self.cuties_server_id : {"id":1005575341672247408, "authors": ["Sbiot", "Cutie Bot"]},
-            self.cuties_community_deaths_id : {"id ": 1242169746972082327, "authors": ["Sbiot", "Cutie Bot"]} }
+            self.cuties_community_deaths_id : {"id": 1242169746972082327, "authors": ["Sbiot", "Cutie Bot"]} }
         self.user_deaths_to_forward = {"Spionks" : {"from":self.adorablehq_id, "to":[self.ello_id, self.cuties_community_deaths_id]},
             "Chionk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
             "Spuimk" : {"from":self.adorablehq_id, "to":[self.ello_id]},
