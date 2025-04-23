@@ -30,7 +30,7 @@ class Sbiot(nextcord.Client):
         self.ello_server_id = 893568164909174835
         self.ello_death_channel_id = 988070592131510303
         self.adorablehq_server_id = 957585958990127144
-        self.adorablehq_death_id = 957585958990127144
+        self.adorablehq_death_id = 975039863130832966
         self.cuties_server_id = 1002860611409039400
         self.cuties_becs_and_blemma_deaths_id = 1005575341672247408
         self.cuties_community_deaths_id = 1242169746972082327
