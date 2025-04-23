@@ -312,7 +312,7 @@ class MaffyCog(commands.Cog):
         for task in tasks_str:
             length += len(task)
             # divide message into chunks of max 2000 characters (1950 to give some margin for the extra linebreaks etc)
-            if length >= 1950:
+            if length >= 1750:
                 if not responded:
                     await interaction.response.send_message("\n".join(responses))
                     responded = True
