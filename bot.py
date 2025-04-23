@@ -288,8 +288,8 @@ class MaffyCog(commands.Cog):
         current_tasks = [ s.strip() for s in current_tasks ]
         previous_tasks = [ task["task"] for task in db.get_all_maffy_tasks() ]
         
-        completed_tasks = [ task for task in previous_tasks if task not in current_tasks]
-        added_tasks = [ task for task in current_tasks if task not in previous_tasks]
+        completed_tasks = [ task for task in previous_tasks if task not in current_tasks and task != "" ]
+        added_tasks = [ task for task in current_tasks if task not in previous_tasks and task != "" ]
 
         for task in completed_tasks:
             db.set_maffy_task_completed(task)
