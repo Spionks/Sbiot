@@ -40,7 +40,7 @@ class Sbiot(nextcord.Client):
                                      {"id": self.cuties_community_deaths_id, "authors": ["Sbiot", "Cutie Bot"]}] }
         self.user_deaths_to_forward = {
             "Spionks" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id),
-                                                                 (self.cuties_community_deaths_id, self.cuties_community_deaths_id)]},
+                                                                 (self.cuties_server_id, self.cuties_community_deaths_id)]},
             "Chionk" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id)]},
             "Spuimk" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id)]},
             "Lietre" : {"from":self.adorablehq_server_id, "to":[(self.ello_server_id, self.ello_death_channel_id)]},
