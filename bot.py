@@ -304,9 +304,20 @@ class MaffyCog(commands.Cog):
         tasks = db.get_all_maffy_tasks()
         if len(tasks) == 0:
             await interaction.response.send_message("There are no tasks on the wheel, go to https://www.twitch.tv/maffychew and give him some new tasks! 🐸")
-        response = "\n".join([ f"{task['task']}, added: {task['added']}, completed: {task['completed']}" for task in tasks ])
+        tasks_str = [ f"{task['task']}, added: {task['added']}, completed: {task['completed']}" for task in tasks ]
 
-        await interaction.response.send_message(response)
+        responses = []
+        length = 0
+        for task in tasks_str:
+            length += len(task)
+            # divide message into chunks of max 2000 characters (1950 to give some margin for the extra linebreaks etc)
+            if length >= 1950:
+                await interaction.response.send_message("\n".join(responses))
+                responses.clear()
+                length = 0
+            responses.append(task)
+
+        await interaction.response.send_message("\n".join(responses))
 
     @nextcord.slash_command(name="delete_maffy_tasks", description="Delete a task from the wheel, separate tasks with semicolon")
     async def delete_maffy_tasks(self, interaction: nextcord.Interaction, tasks: str):
