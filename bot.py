@@ -285,7 +285,7 @@ class MaffyCog(commands.Cog):
     @nextcord.slash_command(name="update_maffy_tasks", description="Updates the wheel with the current tasks")
     async def update_maffy_tasks(self, interaction: nextcord.Interaction, tasks: str):
         current_tasks = tasks.split("\n")
-        previous_tasks = db.get_all_maffy_tasks()
+        previous_tasks = [ task["task"] for task in db.get_all_maffy_tasks() ]
         
         completed_tasks = [ task for task in previous_tasks if task not in current_tasks]
         added_tasks = [ task for task in current_tasks if task not in previous_tasks]
