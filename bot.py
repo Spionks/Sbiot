@@ -292,7 +292,7 @@ class MaffyCog(commands.Cog):
         added_tasks = [ task for task in current_tasks if task not in previous_tasks and task != "" ]
 
         for task in completed_tasks:
-            db.set_maffy_task_completed(task)
+            db.set_maffy_task_rolled(task)
         
         for task in added_tasks:
             db.add_maffy_task(task)
@@ -304,7 +304,7 @@ class MaffyCog(commands.Cog):
         tasks = db.get_all_maffy_tasks()
         if len(tasks) == 0:
             await interaction.response.send_message("There are no tasks on the wheel, go to https://www.twitch.tv/maffychew and give him some new tasks! 🐸")
-        tasks_str = [ f"{task['task']}, added: {task['added']}, completed: {task['completed']}" for task in tasks ]
+        tasks_str = [ f"{task['task']}, added: {task['added']}, rolled: {task['rolled'] if task['rolled'] else 'Not yet!'}, completed: {task['completed'] if task['completed'] else 'Not yet!'}" for task in tasks ]
 
         responses = []
         length = 0
@@ -335,6 +335,20 @@ class MaffyCog(commands.Cog):
         for task in tasks:
             db.remove_maffy_task(task)
         await interaction.response.send_message(f"{len(tasks)} tasks successfully deleted.")
+
+    @nextcord.slash_command(name="add_maffy_task", description="Adds a single task")
+    async def add_maffy_task(self, interaction: nextcord.Interaction, task: str):
+        db.add_maffy_task(task)
+        await interaction.response.send_message(f"Task {task} successfully added.")
+
+    @nextcord.slash_command(name="complete_maffy_task", description="Completes one or more tasks, separate with semicolon")
+    async def complete_maffy_task(self, interaction: nextcord.Interaction, tasks: str):
+        tasks = tasks.split(";")
+        tasks = [ s.strip() for s in tasks ]
+        for task in tasks:
+            db.set_maffy_task_completed(task)
+        await interaction.response.send_message(f"{len(tasks)} tasks successfully marked as completed.")
+
 
 
 if __name__ == "__main__":
