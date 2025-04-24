@@ -18,5 +18,6 @@ CREATE TABLE IF NOT EXISTS rsn_discord_names(
 CREATE TABLE IF NOT EXISTS maffy_tasks(
     task TEXT,
     added TEXT,
+    rolled TEXT,
     completed TEXT
 );

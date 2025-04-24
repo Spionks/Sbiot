@@ -14,6 +14,9 @@ class DB():
         with open("init_db.sql") as file:
             self.cur.executescript(file.read())
 
+    def get_current_utc_time_str():
+        return datetime.datetime.now(tz=datetime.timezone.utc).strptime("%A %Y-%m-%d %H:%M:%S")
+
     def get_record(self, username, record_name):
         self.cur.execute("SELECT * \
             FROM records \
@@ -93,15 +96,22 @@ class DB():
 
 
     def add_maffy_task(self, task):
-        current_time = datetime.datetime.now()
+        current_time = self.get_current_utc_time_str()
         self.cur.execute("INSERT INTO maffy_tasks \
-                         VALUES (?, ?, ?)", (task, str(current_time), None))
+                         VALUES (?, ?, ?, ?)", (task, str(current_time), None, None))
         self.con.commit()
 
     def set_maffy_task_completed(self, task):
-        current_time = datetime.datetime.now()
+        current_time = self.get_current_utc_time_str()
         self.cur.execute("UPDATE maffy_tasks \
                          SET completed = ? \
+                         WHERE task = ?", (str(current_time), task))
+        self.con.commit()
+    
+    def set_maffy_task_rolled(self, task):
+        current_time = self.get_current_utc_time_str()
+        self.cur.execute("UPDATE maffy_tasks \
+                         SET rolled = ? \
                          WHERE task = ?", (str(current_time), task))
         self.con.commit()
 
