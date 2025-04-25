@@ -14,7 +14,7 @@ class DB():
         with open("init_db.sql") as file:
             self.cur.executescript(file.read())
 
-    def get_current_utc_time_str():
+    def get_current_utc_time_str(self):
         return datetime.datetime.now(tz=datetime.timezone.utc).strptime("%A %Y-%m-%d %H:%M:%S")
 
     def get_record(self, username, record_name):
