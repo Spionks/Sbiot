@@ -286,18 +286,18 @@ class MaffyCog(commands.Cog):
     async def update_maffy_tasks(self, interaction: nextcord.Interaction, tasks: str):
         current_tasks = tasks.split(";")
         current_tasks = [ s.strip() for s in current_tasks ]
-        previous_tasks = [ task["task"] for task in db.get_all_maffy_tasks() ]
+        previous_tasks = [ task["task"] for task in db.get_all_maffy_tasks() if not task["rolled"] ]
         
-        completed_tasks = [ task for task in previous_tasks if task not in current_tasks and task != "" ]
+        rolled_tasks = [ task for task in previous_tasks if task not in current_tasks and task != "" ]
         added_tasks = [ task for task in current_tasks if task not in previous_tasks and task != "" ]
 
-        for task in completed_tasks:
+        for task in rolled_tasks:
             db.set_maffy_task_rolled(task)
         
         for task in added_tasks:
             db.add_maffy_task(task)
         
-        await interaction.response.send_message(f"{len(completed_tasks)} tasks marked as completed, {len(added_tasks)} new tasks added.")
+        await interaction.response.send_message(f"{len(rolled_tasks)} tasks marked as rolled, {len(added_tasks)} new tasks added.")
 
     @nextcord.slash_command(name="view_maffy_tasks", description="Shows all Maffy's tasks currently on the wheel")
     async def view_maffy_tasks(self, interaction: nextcord.Interaction):
